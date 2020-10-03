@@ -23,13 +23,21 @@ public class GameManager : MonoBehaviour
     }
 
     int score = 0;
-    bool gameOver = false;
+    bool gameOver = true;
 
     public bool GameOver { get { return gameOver; } }
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
     }
 
     private void OnEnable()
@@ -77,12 +85,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void ConfirmGameOver()
+    {
+        SetPageState(PageState.Start);
+        scoreText.text = "0";
+        OnGameOverConfirmed();
+    }
 
     public void StartGame()
     {
         SetPageState(PageState.None);
         OnGameStarted();
         score = 0;
-        gameOver = false;
+        gameOver = true;
     }
 }
