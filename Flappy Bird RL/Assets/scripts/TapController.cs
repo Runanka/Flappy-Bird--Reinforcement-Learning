@@ -64,8 +64,8 @@ public class TapController : MonoBehaviour
         }
         if(col.gameObject.tag == "DeadZone")
         {
-            rigid_body.simulated = false;
             OnPlayerDied();
+            OnGameStarted();
         }
     }
 }

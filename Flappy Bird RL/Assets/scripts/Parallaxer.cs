@@ -38,7 +38,6 @@ public class Parallaxer : MonoBehaviour
 
     public YSpawnRange YspawnRange;
     public Vector3 defaultSpawnPos;
-    public bool spawnImmediate;
     public Vector3 immediateSpawnPos;
     public Vector2 targetAspectRatio;
 
@@ -56,18 +55,9 @@ public class Parallaxer : MonoBehaviour
     {
         game = GameManager.Instance;
     }
+    
 
-    private void OnEnable()
-    {
-        GameManager.OnGameOverConfirmed += OnGameOverConfirmed;
-    }
-
-    private void OnDisable()
-    {
-        GameManager.OnGameOverConfirmed -= OnGameOverConfirmed;
-
-    }
-
+    
     void OnGameOverConfirmed()
     {
         for (int i = 0; i < poolObjects.Length; i++)
@@ -75,12 +65,14 @@ public class Parallaxer : MonoBehaviour
             poolObjects[i].Dispose();
             poolObjects[i].transform.position = Vector3.one * 1000;
         }
+        game.GameOver = false;
         Configure();
     }
+    
 
     private void Update()
     {
-        if (game.GameOver) return;
+        if (game.GameOver) OnGameOverConfirmed();
 
         Shift();
         spawnTimer += Time.deltaTime;
@@ -98,16 +90,13 @@ public class Parallaxer : MonoBehaviour
         for(int i = 0; i < poolObjects.Length; i++)
         {
             GameObject go = Instantiate(Prefab) as GameObject;
+            go.SetActive(true);
             Transform t = go.transform;
             t.SetParent(transform);
             t.position = Vector3.one * 1000;
             poolObjects[i] = new PoolObject(t);
         }
 
-        if (spawnImmediate)
-        {
-            SpawnImmediate();
-        }
     }
 
     void Spawn()
@@ -115,34 +104,23 @@ public class Parallaxer : MonoBehaviour
         Transform t = GetPoolObject();
         if (t == null) return;
         Vector3 pos = Vector3.zero;
-        pos.x = (defaultSpawnPos.x * Camera.main.aspect) / targetAspect;
+        pos.x = 5;
         pos.y = UnityEngine.Random.Range(YspawnRange.min, YspawnRange.max);
         t.position = pos;
-    }
-
-    void SpawnImmediate()
-    {
-        Transform t = GetPoolObject();
-        if (t == null) return;
-        Vector3 pos = Vector3.zero;
-        pos.x = immediateSpawnPos.x;
-        pos.y = UnityEngine.Random.Range(YspawnRange.min, YspawnRange.max);
-        t.position = pos;
-        Spawn();
     }
 
     void Shift()
     {
         for(int i = 0; i < poolObjects.Length; i++)
         {
-            poolObjects[i].transform.position += Vector3.right * shiftSpeed * Time.deltaTime;
+            poolObjects[i].transform.position -= Vector3.right * shiftSpeed * Time.deltaTime;
             CheckDisposeObject(poolObjects[i]);
         }
     }
 
     void CheckDisposeObject(PoolObject poolObject)
     {
-        if (poolObject.transform.position.x < (-defaultSpawnPos.x * Camera.main.aspect) / targetAspect)
+        if (poolObject.transform.position.x < -6.0)
         {
             poolObject.Dispose();
             poolObject.transform.position = Vector3.one * 1000;
